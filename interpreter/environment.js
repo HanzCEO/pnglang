@@ -2,7 +2,12 @@ const { COMMANDS } = require('./enums');
 
 module.exports = class Environment {
 	constructor() {
-		// ...
+		this.register = {
+			rax: 0,
+			rbx: 0,
+			rcx: 0,
+			rdx: 0
+		};
 	}
 
 	run(code) {
