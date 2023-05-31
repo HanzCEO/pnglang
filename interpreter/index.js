@@ -1,12 +1,12 @@
 const Jimp = require('jimp');
 
-const { COMMANDS_NAME, ARG_TYPE } = require('./enums');
+const { COMMANDS_NAME, COMMANDS, ARG_TYPE } = require('./enums');
 const Environment = require('./environment');
 
 function processArgument(arg) {
 	if (arg === '\x00') {
 		// void
-		return { type: ARG_TYPE.VOID };
+		return { type: ARG_TYPE.VOID, value: '' };
 	} else if (arg.startsWith('"')) {
 		// String
 		let val = '';
@@ -86,9 +86,20 @@ function asmToCode(asm) {
 	 * 4) [CM&, \x01, \x01]
 	 */
 
-	for (const [command, arg1, arg2] of codeset) {
-		let args = [arg1, arg2];
+	const voidOrValue = x => {
+		if (x === undefined) {
+			return { type: ARG_TYPE.VOID, value: '' };
+		} else {
+			return x;
+		}
+	};
+
+	for (let [command, arg1, arg2] of codeset) {
+		let args = [arg1, arg2].map(voidOrValue);
 		let valCodes = [[], []];
+
+		// Reapply
+		[arg1, arg2] = args;
 
 		for (let i = 0; i < args.length; i++) {
 			let arg = args[i];
@@ -112,7 +123,7 @@ function asmToCode(asm) {
 		}
 
 		// [CM&, \x00, \x00]
-		code.push([COMMANDS['cm&'], 0, 0]);
+		code.push([COMMANDS['CM&'], 0, 0]);
 
 		// 1) [COMMAND, ARG1_TYPE, ARG2_TYPE]
 		code.push([COMMANDS_NAME.indexOf(command), arg1.type, arg2.type]);
@@ -147,7 +158,7 @@ function asmToCode(asm) {
 		}
 
 		// [CM&, \x01, \x01]
-		code.push([COMMANDS['cm&'], 1, 1]);
+		code.push([COMMANDS['CM&'], 1, 1]);
 	}
 
 	return code;
