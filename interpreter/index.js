@@ -30,6 +30,11 @@ function processArgument(arg) {
 			type: ARG_TYPE.STRING,
 			value: val
 		};
+	} else if ('0' <= arg[0] && arg[0] <= '9') {
+		return {
+			type: ARG_TYPE.INT,
+			value: arg
+		};
 	}
 }
 
@@ -154,7 +159,7 @@ function asmToCode(asm) {
 
 		let argmaxval = Math.max(arg1val.length, arg1val.length);
 		for (let i = 0; i < argmaxval; i++) {
-			code.push([0, arg1val[i] ?? 0, arg2val[i] ?? 0]);
+			code.push([COMMANDS['ARGPART'], arg1val[i] ?? 0, arg2val[i] ?? 0]);
 		}
 
 		// [CM&, \x01, \x01]
