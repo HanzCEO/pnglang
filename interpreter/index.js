@@ -27,7 +27,7 @@ function processArgument(arg) {
 		val = val.substr(1);
 
 		return {
-			type: ARG_TYPE.STRING
+			type: ARG_TYPE.STRING,
 			value: val
 		};
 	}
@@ -112,7 +112,7 @@ function asmToCode(asm) {
 		}
 
 		// [CM&, \x00, \x00]
-		code.push(COMMANDS['cm&'], 0, 0]);
+		code.push([COMMANDS['cm&'], 0, 0]);
 
 		// 1) [COMMAND, ARG1_TYPE, ARG2_TYPE]
 		code.push([COMMANDS_NAME.indexOf(command), arg1.type, arg2.type]);
@@ -147,7 +147,7 @@ function asmToCode(asm) {
 		}
 
 		// [CM&, \x01, \x01]
-		code.push(COMMANDS['cm&'], 1, 1]);
+		code.push([COMMANDS['cm&'], 1, 1]);
 	}
 
 	return code;
