@@ -26,5 +26,7 @@ Jimp.read(process.argv[3], (err, output) => {
 		}
 	}
 
+	console.log(code);
+
 	output.write(`${process.argv[3]}.png`);
 });
