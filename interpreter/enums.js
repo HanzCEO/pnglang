@@ -1,7 +1,7 @@
 const COMMANDS_NAME = [
 	/* Reserved names */
 	'EOF',
-	'cm&', '_reserved0',
+	'cm&', 'argpart',
 	'_reserved1', '_reserved2',
 	'_reserved3', '_reserved4',
 	'_reserved5', '_reserved6',
