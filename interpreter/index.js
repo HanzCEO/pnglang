@@ -12,7 +12,8 @@ function processArgument(arg) {
 		let val = '';
 		let escaped = false;
 
-		for (const ch of arg) {
+		// Remove the prefix '"'
+		for (const ch of arg.substr(1)) {
 			if (ch == '\\') {
 				escaped = true;
 				continue;
@@ -22,9 +23,6 @@ function processArgument(arg) {
 
 			val += ch;
 		}
-
-		// Then remove the prefix '"'
-		val = val.substr(1);
 
 		return {
 			type: ARG_TYPE.STRING,
