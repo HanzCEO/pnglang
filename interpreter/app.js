@@ -1,3 +1,6 @@
 let interpreter = require('./index');
 
-interpreter.interpretFile(process.argv[2]);
+(async () => {
+	let res = await interpreter.interpretFile(process.argv[2]);
+	console.log(res);
+})();
