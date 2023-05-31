@@ -187,8 +187,11 @@ async function interpretFile(filename) {
 					}
 
 					code[Math.floor(i / 3)][i % 3] = color.a;
-					if (code[Math.floor(i / 3)][0] == 0) {
-						// EOF
+					if (code[Math.floor(i / 3)]
+						.filter(x => x === 0)
+						.length == 3
+					) {
+						// EOF [0,0,0]
 						finished = true;
 						break;
 					}
