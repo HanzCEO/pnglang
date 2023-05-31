@@ -155,7 +155,7 @@ function asmToCode(asm) {
 		let arg1val = arg1.value.toString().split('').map(ch => ch.charCodeAt(0));
 		let arg2val = arg2.value.toString().split('').map(ch => ch.charCodeAt(0));
 
-		let argmaxval = Math.max(arg1val.length, arg1val.length);
+		let argmaxval = Math.max(arg1val.length, arg2val.length);
 		for (let i = 0; i < argmaxval; i++) {
 			code.push([COMMANDS['ARGPART'], arg1val[i] ?? 0, arg2val[i] ?? 0]);
 		}
