@@ -1,0 +1,11 @@
+; You could use mov in this syntax:
+; mov destination source
+mov rax 1
+log rax
+
+; or you could use one of the register as the source
+mov rbx rax
+
+; you can also move string with mov
+mov rbx "heylo"
+log rbx
