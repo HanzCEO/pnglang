@@ -28,7 +28,7 @@ const ARG_TYPE_NAME = [
 	'_reserved9', '_reserved10',
 
 	/* Primitives */
-	'string', 'int'
+	'string', 'int', 'register'
 ];
 const ARG_TYPE = {};
 
@@ -36,10 +36,31 @@ for (let i = 0; i < ARG_TYPE_NAME.length; i++) {
 	ARG_TYPE[ARG_TYPE_NAME[i].toUpperCase()] = i;
 }
 
+const REGISTERS_NAME = [
+	/* Reserved */
+	'_reserved', '_reserved0',
+	'_reserved1', '_reserved2',
+	'_reserved3', '_reserved4',
+	'_reserved5', '_reserved6',
+	'_reserved7', '_reserved8',
+	'_reserved9', '_reserved10',
+
+	/* Regulars */
+	'rax', 'rbx', 'rcx', 'rdx'
+];
+const REGISTERS = {};
+
+for (let i = 0; i < REGISTERS_NAME.length; i++) {
+	REGISTERS[REGISTERS_NAME[i].toUpperCase()] = i;
+}
+
 module.exports = {
 	COMMANDS,
 	COMMANDS_NAME,
 
 	ARG_TYPE_NAME,
-	ARG_TYPE
+	ARG_TYPE,
+
+	REGISTERS,
+	REGISTERS_NAME
 };
