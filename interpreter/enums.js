@@ -9,7 +9,7 @@ const COMMANDS_NAME = [
 	'_reserved9', '_reserved10',
 
 	/* Functions */
-	'mov', 'add', 'log'
+	'mov', 'add', 'log', 'jmp'
 ];
 const COMMANDS = {};
 
@@ -28,7 +28,7 @@ const ARG_TYPE_NAME = [
 	'_reserved9', '_reserved10',
 
 	/* Primitives */
-	'string', 'int', 'register'
+	'string', 'int', 'register', 'addresser'
 ];
 const ARG_TYPE = {};
 

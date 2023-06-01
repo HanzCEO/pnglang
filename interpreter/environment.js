@@ -22,6 +22,8 @@ module.exports = class Environment {
 			return String.fromCharCode(val);
 		case ARG_TYPE['REGISTER']:
 			return String.fromCharCode(val);
+		case ARG_TYPE['ADDRESSER']:
+			return String.fromCharCode(val);
 		default:
 			return String(val)[0];
 		}
@@ -102,6 +104,9 @@ module.exports = class Environment {
 					} else {
 						console.log(detail.argsValue[0]);
 					}
+					break;
+				case COMMANDS.JMP:
+					i = Number(detail.argsValue[0]);
 					break;
 				}
 			}

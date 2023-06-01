@@ -3,6 +3,42 @@ const Jimp = require('jimp');
 const { COMMANDS_NAME, COMMANDS, ARG_TYPE, REGISTERS_NAME } = require('./enums');
 const Environment = require('./environment');
 
+/* Encoders */
+function encodeArgumentLength(arg1, arg2) {
+	let code = [];
+
+	let lengths = [arg1.value.length, arg2.value.length];
+	let lengthMax = Math.max(arg1.value.length, arg2.value.length);
+	// Remember: 255 is 255 not 256 as in 0-index
+	for (let i = 0; i < Math.floor(lengthMax / 255); i++) {
+		lengths[0] -= 255;
+		lengths[1] -= 255;
+
+		let l1 = lengths[0] < 0 ? 0 : 255;
+		let l2 = lengths[1] < 0 ? 0 : 255;
+		code.push([0, l1, l2]);
+	}
+	code.push([1, Math.max(0, lengths[0]), Math.max(0, lengths[1])]);
+
+	return code;
+}
+
+function encodeArgumentValues(arg1, arg2) {
+	let code = [];
+
+	let arg1val = arg1.value.toString().split('').map(ch => ch.charCodeAt(0));
+	let arg2val = arg2.value.toString().split('').map(ch => ch.charCodeAt(0));
+
+	let argmaxval = Math.max(arg1val.length, arg2val.length);
+	for (let i = 0; i < argmaxval; i++) {
+		code.push([COMMANDS['ARGPART'], arg1val[i] ?? 0, arg2val[i] ?? 0]);
+	}
+
+	return code;
+}
+
+/* Interpreter stuff */
+
 function processArgument(arg) {
 	if (arg === '\x00') {
 		// void
@@ -38,6 +74,11 @@ function processArgument(arg) {
 			type: ARG_TYPE.REGISTER,
 			value: arg
 		};
+	} else if (arg.startsWith('@')) {
+		return {
+			type: ARG_TYPE.ADDRESSER,
+			value: arg.substr(1)
+		};
 	}
 }
 
@@ -67,8 +108,10 @@ function parse(asm) {
 	let retval = [];
 	let lines = asm.split('\n');
 	lines.pop();
+	let lineIndex = 0;
 	for (let line of lines) {
 		line = line.trim();
+		lineIndex++;
 
 		// if comment
 		if (line.startsWith(';')) {
@@ -85,7 +128,7 @@ function parse(asm) {
 
 		let [arg1, arg2] = parseArguments(args);
 
-		retval.push([command, arg1, arg2]);
+		retval.push({lineIndex, instruction: [command, arg1, arg2]});
 	}
 
 	return retval;
@@ -113,8 +156,11 @@ function asmToCode(asm) {
 		}
 	};
 
-	for (let [command, arg1, arg2] of codeset) {
+	let instructionInserted = 0;
+	for (let {lineIndex, instruction} of codeset) {
+		let [command, arg1, arg2] = instruction;
 		let args = [arg1, arg2].map(voidOrValue);
+		// TODO: valCodes is unused
 		let valCodes = [[], []];
 
 		// Reapply
@@ -130,6 +176,35 @@ function asmToCode(asm) {
 			case ARG_TYPE.STRING:
 				valCodes[i] = arg.value.split('').map(ch => ch.charCodeAt(0));
 				break;
+			case ARG_TYPE.ADDRESSER:
+				// unused lines of code
+				let uloc = lineIndex-1 - instructionInserted;
+
+				// instruction position in file (1-index)
+				let instPos = Number(arg.value) - uloc;
+				// +1 to include our jmp instruction
+				let instDelta = instructionInserted - instPos + 1;
+
+				// instruction position in code array (0-index)
+				let codePos = 0;
+				if (instructionInserted < instPos) {
+					// We need to go back to the future later
+					arg.value = String(-(instPos - instructionInserted - 1));
+				} else {
+					for (let ii = code.length-1; ii >= 0; ii--) {
+						if (code[ii][0] == COMMANDS['CM&']) {
+							if (code[ii][1] + code[ii][2] == 0) {
+								instDelta--;
+								if (instDelta <= 0) {
+									codePos = ii;
+									break;
+								}
+							}
+						}
+					}
+					arg.value = String(codePos);
+				}
+				// Fall down to integer encoder
 			case ARG_TYPE.INT:
 				let hex = Number(arg.value).toString(16);
 				for (let p = 0; p < hex.length; p += 2) {
@@ -147,6 +222,7 @@ function asmToCode(asm) {
 
 		// [CM&, \x00, \x00]
 		code.push([COMMANDS['CM&'], 0, 0]);
+		instructionInserted++;
 
 		// 1) [COMMAND, ARG1_TYPE, ARG2_TYPE]
 		code.push([COMMANDS_NAME.indexOf(command), arg1.type, arg2.type]);
@@ -155,36 +231,115 @@ function asmToCode(asm) {
 		 * 2) [IS_LENGTH_END_DEFINITION, ARG1_LENGTH, ARG2_LENGTH]
 		 * ... // until IS_LENGTH_END_DEFINITION byte is not 0
 		 */
-		let lengths = [arg1.value.length, arg2.value.length];
-		let lengthMax = Math.max(arg1.value.length, arg2.value.length);
-		// Remember: 255 is 255 not 256 as in 0-index
-		for (let i = 0; i < Math.floor(lengthMax / 255); i++) {
-			lengths[0] -= 255;
-			lengths[1] -= 255;
-
-			let l1 = lengths[0] < 0 ? 0 : 255;
-			let l2 = lengths[1] < 0 ? 0 : 255;
-			code.push([0, l1, l2]);
+		let lengthcodes = encodeArgumentLength(arg1, arg2);
+		for (const c of lengthcodes) {
+			code.push(c);
 		}
-		code.push([1, Math.max(0, lengths[0]), Math.max(0, lengths[1])]);
 
 		/*
 		 * 3) [__RESERVED__, ARG1_PART, ARG2_PART]
 		 * ... // until it finishes
 		 */
-		let arg1val = arg1.value.toString().split('').map(ch => ch.charCodeAt(0));
-		let arg2val = arg2.value.toString().split('').map(ch => ch.charCodeAt(0));
-
-		let argmaxval = Math.max(arg1val.length, arg2val.length);
-		for (let i = 0; i < argmaxval; i++) {
-			code.push([COMMANDS['ARGPART'], arg1val[i] ?? 0, arg2val[i] ?? 0]);
+		let argvalCodes = encodeArgumentValues(arg1, arg2);
+		for (const c of argvalCodes) {
+			code.push(c);
 		}
 
 		// [CM&, \x01, \x01]
 		code.push([COMMANDS['CM&'], 1, 1]);
 	}
 
+	code = solveAllAddresser(code);
+
 	return code;
+}
+
+function solveAllAddresser(codes) {
+	let commandStart = false;
+	for (let i = 0; i < codes.length; i++) {
+		let code = codes[i];
+		if (commandStart) {
+			let isAddresser = false;
+			let [command, ...argtypes] = code;
+			let argval = [{value: ''}, {value: ''}];
+			let argsLength = []; // in codes
+
+			for (let ii = 0; ii < argtypes.length; ii++) {
+				if (argtypes[ii] == ARG_TYPE.ADDRESSER) {
+					isAddresser = true;
+					let u = i + 2; // index for reading `addressed` bytes
+					let addressed = ''; // the address
+					let final = 0; // final form of address
+					// console.log(codes.slice(u));
+					while (codes[u][0] == 2) {
+						addressed += String.fromCharCode(codes[u][ii+1]);
+						u++;
+					}
+					addressed = Number(addressed);
+					if (addressed < 0) {
+						// Future looking
+						for (let p = i; p < codes.length; p++) {
+							if (codes[p][0] == COMMANDS['CM&']) {
+								if (codes[p][1] + codes[p][2] == 0) {
+									addressed++;
+									// console.log(addressed, p);
+									if (addressed >= 0) {
+										final = p;
+										break;
+									}
+								}
+							}
+						}
+						// console.log("SOLVE ALL", final, i);
+						// console.table(codes.slice(final))
+						// It is time to put our updated value here
+						// TODO: Change value to empty array if valCodes implemented
+						argval[ii] = { value: String(final) };
+						// implement valCodes first
+						/*let hex = Number(final).toString(16);
+						for (let p = 0; p < hex.length; p += 2) {
+							argval[ii].value.push(
+								parseInt(hex.substr(p, 2), 16)
+							);
+						}*/
+					} else {
+						// Don't solve this solved addresser
+						isAddresser = false;
+					}
+				}
+			}
+
+			// Begin replacing current values
+			if (isAddresser) {
+				argsLength = encodeArgumentLength(...argval);
+				argsValue = encodeArgumentValues(...argval);
+
+				i++; // Step once to arguments length assembly
+				// Alter argument length assembly
+				let needsToBeDeleted = 0;
+				while (codes[i + needsToBeDeleted][0] != 2) needsToBeDeleted++;
+				codes.splice(i, needsToBeDeleted, ...argsLength);
+				i += argsLength.length; // Step to arguments values
+
+				// Now we need to alter arguments values assembly
+				needsToBeDeleted = 0;
+				while (codes[i + needsToBeDeleted][0] == 2) needsToBeDeleted++;
+				codes.splice(i, needsToBeDeleted, ...argsValue);
+				i += argsValue.length;
+			}
+
+			commandStart = false;
+		}
+
+		if (code[0] == COMMANDS['CM&']) {
+			if (code[1] + code[2] == 0) {
+				// Command start
+				commandStart = true;
+			}
+		}
+	}
+
+	return codes;
 }
 
 async function interpretFile(filename) {
