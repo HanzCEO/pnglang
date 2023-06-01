@@ -1,4 +1,4 @@
-const { COMMANDS, ARG_TYPE, REGISTERS } = require('./enums');
+const { COMMANDS, ARG_TYPE, REGISTERS, REGISTERS_NAME } = require('./enums');
 
 module.exports = class Environment {
 	constructor() {
@@ -81,6 +81,13 @@ module.exports = class Environment {
 				let detail = evaluation.detail;
 
 				switch (detail.command) {
+				case COMMANDS.MOV:
+					let dest = detail.argsValue[0].name ?? detail.argsValue[0];
+					let value = detail.argsValue[1].value ?? detail.argsValue[1];
+					if (REGISTERS_NAME.includes(dest)) {
+						this.register[dest] = value;
+					}
+					break;
 				case COMMANDS.ADD:
 					console.log(
 						(detail.argsValue[0] - '0')
