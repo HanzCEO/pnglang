@@ -184,7 +184,6 @@ function asmToCode(asm) {
 		code.push([COMMANDS['CM&'], 1, 1]);
 	}
 
-	console.table(code)
 	return code;
 }
 
