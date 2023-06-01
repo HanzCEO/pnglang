@@ -66,6 +66,9 @@ module.exports = class Environment {
 						(detail.argsValue[1] - '0')
 					);
 					break;
+				case COMMANDS.LOG:
+					console.log(detail.argsValue[0]);
+					break;
 				}
 			}
 		}
