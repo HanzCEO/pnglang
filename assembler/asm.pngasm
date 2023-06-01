@@ -1,2 +1,3 @@
-add 9 9
+log "hello"
+log "beautiful picture isn't it?"
 EOF

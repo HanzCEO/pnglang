@@ -39,26 +39,35 @@ function encodeArgumentValues(arg1, arg2) {
 
 /* Interpreter stuff */
 
+/* Parser */
+function parseString(arg) {
+	let val = '';
+	let escaped = false;
+
+	// Remove the prefix '"'
+	for (const ch of arg.substr(1)) {
+		if (ch == '\\') {
+			escaped = true;
+			continue;
+		} else if (ch == '"' && !escaped) {
+			break;
+		}
+
+		val += ch;
+	}
+
+	return val;
+}
+
+/* Another stuff */
+
 function processArgument(arg) {
 	if (arg === '\x00') {
 		// void
 		return { type: ARG_TYPE.VOID, value: '' };
 	} else if (arg.startsWith('"')) {
 		// String
-		let val = '';
-		let escaped = false;
-
-		// Remove the prefix '"'
-		for (const ch of arg.substr(1)) {
-			if (ch == '\\') {
-				escaped = true;
-				continue;
-			} else if (ch == '"' && !escaped) {
-				break;
-			}
-
-			val += ch;
-		}
+		let val = parseString(arg);
 
 		return {
 			type: ARG_TYPE.STRING,
@@ -84,6 +93,22 @@ function processArgument(arg) {
 
 function parseArguments(_args) {
 	let args = _args.split(' ');
+
+	// Search for end of strings
+	if (args.length > 2) {
+		if (args[0].startsWith('"')) {
+			// It's a string!
+			// Now search for end of '"'
+			let o = 0;
+			for (o = 0; o < args.length; o++) {
+				if (args[o].endsWith('"')) break;
+			}
+			o++; // for Array.slice()
+
+			args = [args.slice(0, o).join(' '), ...args.slice(o)];
+			// TODO: Add string support for 2nd argument
+		}
+	}
 
 	for (let i = 0; i < args.length; i++) {
 		if (args[i].length == 0) args[i] = '\x00';
