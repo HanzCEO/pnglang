@@ -63,6 +63,7 @@ module.exports = class Environment {
 			i++;
 		}
 		for (let o = 0; o < detail.argsValue.length; o++) {
+			detail.argsValue[o] = detail.argsValue[o].substr(0, detail.argsLength[o]);
 			detail.argsValue[o] = this.transformArgValue(detail.argsType[o], detail.argsValue[o]);
 		}
 
