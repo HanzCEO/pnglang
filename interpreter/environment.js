@@ -1,4 +1,4 @@
-const { COMMANDS, ARG_TYPE } = require('./enums');
+const { COMMANDS, ARG_TYPE, REGISTERS } = require('./enums');
 
 module.exports = class Environment {
 	constructor() {
@@ -10,13 +10,32 @@ module.exports = class Environment {
 		};
 	}
 
+	getRegisterValue(name) {
+		return this.register[name];
+	}
+
 	decodeArgValue(type, val) {
 		switch (type) {
 		case ARG_TYPE['STRING']:
 			return String.fromCharCode(val);
 		case ARG_TYPE['INT']:
 			return String.fromCharCode(val);
-			// return String(val)[0];
+		case ARG_TYPE['REGISTER']:
+			return String.fromCharCode(val);
+		default:
+			return String(val)[0];
+		}
+	}
+
+	transformArgValue(type, val) {
+		switch (type) {
+		case ARG_TYPE['REGISTER']:
+			return {
+				name: val,
+				value: this.getRegisterValue(val)
+			};
+		default:
+			return String(val);
 		}
 	}
 
@@ -39,9 +58,12 @@ module.exports = class Environment {
 		// Parse args content
 		detail.argsValue = ['', ''];
 		while (code[i][0] == COMMANDS['ARGPART']) {
-			detail.argsValue[0] += decodeArgValue(detail.argsType[0], code[i][1]);
-			detail.argsValue[1] += decodeArgValue(detail.argsType[1], code[i][2]);
+			detail.argsValue[0] += this.decodeArgValue(detail.argsType[0], code[i][1]);
+			detail.argsValue[1] += this.decodeArgValue(detail.argsType[1], code[i][2]);
 			i++;
+		}
+		for (let o = 0; o < detail.argsValue.length; o++) {
+			detail.argsValue[o] = this.transformArgValue(detail.argsType[o], detail.argsValue[o]);
 		}
 
 		return {
@@ -54,7 +76,7 @@ module.exports = class Environment {
 		for (let i = 0; i < code.length; i++) {
 			const instruction = code[i];
 			if (instruction[0] > 12) {
-				let evaluation = parseFunctionCall(code, i);
+				let evaluation = this.parseFunctionCall(code, i);
 				i = evaluation.i;
 				let detail = evaluation.detail;
 
@@ -67,7 +89,11 @@ module.exports = class Environment {
 					);
 					break;
 				case COMMANDS.LOG:
-					console.log(detail.argsValue[0]);
+					if (detail.argsType[0] == ARG_TYPE.REGISTER) {
+						console.log(detail.argsValue[0].value);
+					} else {
+						console.log(detail.argsValue[0]);
+					}
 					break;
 				}
 			}

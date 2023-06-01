@@ -1,6 +1,6 @@
 const Jimp = require('jimp');
 
-const { COMMANDS_NAME, COMMANDS, ARG_TYPE } = require('./enums');
+const { COMMANDS_NAME, COMMANDS, ARG_TYPE, REGISTERS_NAME } = require('./enums');
 const Environment = require('./environment');
 
 function processArgument(arg) {
@@ -31,6 +31,11 @@ function processArgument(arg) {
 	} else if ('0' <= arg[0] && arg[0] <= '9') {
 		return {
 			type: ARG_TYPE.INT,
+			value: arg
+		};
+	} else if (REGISTERS_NAME.includes(arg)) {
+		return {
+			type: ARG_TYPE.REGISTER,
 			value: arg
 		};
 	}
@@ -67,6 +72,11 @@ function parse(asm) {
 
 		// if comment
 		if (line.startsWith(';')) {
+			continue;
+		}
+
+		// if blank line
+		if (line.length == 0) {
 			continue;
 		}
 		
@@ -128,6 +138,10 @@ function asmToCode(asm) {
 					);
 				}
 				break;
+			case ARG_TYPE.REGISTER:
+				let index = REGISTERS_NAME.indexOf(arg.value);
+				valCodes[i] = [index];
+				break;
 			}
 		}
 
@@ -170,6 +184,7 @@ function asmToCode(asm) {
 		code.push([COMMANDS['CM&'], 1, 1]);
 	}
 
+	console.table(code)
 	return code;
 }
 
