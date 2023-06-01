@@ -88,6 +88,7 @@ module.exports = class Environment {
 					let dest = detail.argsValue[0].name ?? detail.argsValue[0];
 					let value = detail.argsValue[1].value ?? detail.argsValue[1];
 					if (REGISTERS_NAME.includes(dest)) {
+						if (!isNaN(Number(value))) value = Number(value);
 						this.register[dest] = value;
 					}
 					break;
