@@ -92,11 +92,15 @@ module.exports = class Environment {
 					}
 					break;
 				case COMMANDS.ADD:
-					console.log(
-						(detail.argsValue[0] - '0')
-						+
-						(detail.argsValue[1] - '0')
-					);
+					// TODO: Do something for arg1 != REGISTER
+					if (detail.argsType[0] == ARG_TYPE.REGISTER) {
+						let dest = detail.argsValue[0].name;
+						if (REGISTERS_NAME.includes(dest)) {
+							let val = detail.argsValue[1].value ?? detail.argsValue[1];
+							if (!isNaN(Number(val))) val = Number(val);
+							this.register[detail.argsValue[0].name] += val;
+						}
+					}
 					break;
 				case COMMANDS.LOG:
 					if (detail.argsType[0] == ARG_TYPE.REGISTER) {
