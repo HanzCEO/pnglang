@@ -3,15 +3,5 @@
 ; inside of your editor.
 log "hi"
 jmp @7
-log "NO"
-log "YES"
-jmp @6
-;
-;instins = 1
-;lineIndex = 5
-;arg.value = 7
-;
-;comment = lineIndex - 1 - instins
-;        = 5 - 1 - 1
-;        = 3 (uloc)
-;7 - 3 = 4
+log "itDoesntWork"
+log "itWorks"
