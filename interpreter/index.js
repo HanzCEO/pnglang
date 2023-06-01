@@ -64,6 +64,12 @@ function parse(asm) {
 	lines.pop();
 	for (let line of lines) {
 		line = line.trim();
+
+		// if comment
+		if (line.startsWith(';')) {
+			continue;
+		}
+		
 		let [command] = line.split(' ', 1);
 		let args = line.substr(command.length + 1);
 
