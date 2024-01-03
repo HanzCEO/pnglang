@@ -10,7 +10,9 @@ module.exports = class Environment {
 			rdx: 0,
 			zf: 0
 		};
-		this.importedResources = {};
+		this.importedResources = {
+			coreutils: require('./modules/coreutils')
+		};
 	}
 
 	getRegisterValue(name) {
