@@ -163,6 +163,9 @@ function asmToCode(asm) {
 	let codeset = parse(asm);
 	let code = [];
 
+	// Give entry point
+	code.push([COMMANDS.ENTRY, 0, 0]);
+
 	/* @v1
 	 * 0) [CM&, \x00, \x00]
 	 * 1) [COMMAND, ARG1_TYPE, ARG2_TYPE]
@@ -274,6 +277,9 @@ function asmToCode(asm) {
 		code.push([COMMANDS['CM&'], 1, 1]);
 	}
 
+	// Add EOF
+	code.push([COMMANDS.EOF, 0, 0]);
+
 	code = solveAllAddresser(code);
 
 	return code;
@@ -374,22 +380,36 @@ async function interpretFile(filename) {
 
 			let code = [];
 			let i = 0;
+			let entryPointDiscoveredAt = -1;
+			let eofDiscoveredAt = -1;
 			let finished = false;
 			for (let x = 0; x < input.bitmap.width; x++) {
 				if (finished) break;
 				for (let y = 0; y < input.bitmap.height; y++) {
 					let color = Jimp.intToRGBA(input.getPixelColor(x, y));
-
+					
 					if (code[Math.floor(i / 3)] === undefined) {
 						code[Math.floor(i / 3)] = [0, 0, 0];
 					}
 
 					code[Math.floor(i / 3)][i % 3] = color.a;
+
+					// Check for Entry Point
+					if (entryPointDiscoveredAt == -1 && code[Math.floor(i / 3)].join('__') == "3__0__0") {
+						entryPointDiscoveredAt = Math.floor(i / 3);
+					} else if (entryPointDiscoveredAt == -1) {
+						delete code[Math.floor(i / 3)];
+						i++;
+						continue;
+					}
+
+					// Check for EOF					
 					if (code[Math.floor(i / 3)]
 						.filter(x => x === 0)
 						.length == 3
 					) {
 						// EOF [0,0,0]
+						eofDiscoveredAt = Math.floor(i / 3);
 						finished = true;
 						break;
 					}
@@ -397,6 +417,9 @@ async function interpretFile(filename) {
 					i++;
 				}
 			}
+
+			// Delete all entries before entry point and after EOF
+			code = code.slice(entryPointDiscoveredAt, eofDiscoveredAt);
 
 			let env = new Environment();
 			env.run(code);
