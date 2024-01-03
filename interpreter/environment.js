@@ -130,6 +130,16 @@ module.exports = class Environment {
 						i = Number(detail.argsValue[0]);
 					}
 					break;
+				case COMMANDS.SUB:
+					if (detail.argsType[0] == ARG_TYPE.REGISTER) {
+						let dest = detail.argsValue[0].name;
+						if (REGISTERS_NAME.includes(dest)) {
+							let val = detail.argsValue[1].value ?? detail.argsValue[1];
+							if (!isNaN(Number(val))) val = Number(val);
+							this.register[detail.argsValue[0].name] -= val;
+						}
+					}
+					break;
 				}
 			}
 		}
