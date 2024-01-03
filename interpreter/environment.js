@@ -114,6 +114,11 @@ module.exports = class Environment {
 				case COMMANDS.JMP:
 					i = Number(detail.argsValue[0]);
 					break;
+				case COMMANDS.TEST:
+					let v1 = detail.argsValue[0].value ?? detail.argsValue[0];
+					let v2 = detail.argsValue[1].value ?? detail.argsValue[1];
+					this.register.zf = Number(v1 === v2);
+					break;
 				}
 			}
 		}
