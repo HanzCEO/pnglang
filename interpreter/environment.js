@@ -1,3 +1,4 @@
+const path = require('path');
 const { COMMANDS, ARG_TYPE, REGISTERS, REGISTERS_NAME } = require('./enums');
 
 module.exports = class Environment {
@@ -9,6 +10,7 @@ module.exports = class Environment {
 			rdx: 0,
 			zf: 0
 		};
+		this.importedResources = {};
 	}
 
 	getRegisterValue(name) {
@@ -139,6 +141,11 @@ module.exports = class Environment {
 							this.register[detail.argsValue[0].name] -= val;
 						}
 					}
+					break;
+				case COMMANDS.IMPORT:
+					let mod = require(path.join(process.cwd(), detail.argsValue[0]));
+					let modName = detail.argsValue[1];
+					this.importedResources[modName] = mod;
 					break;
 				}
 			}

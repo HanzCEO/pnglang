@@ -9,7 +9,7 @@ const COMMANDS_NAME = [
 	'_reserved9', '_reserved10',
 
 	/* Functions */
-	'mov', 'add', 'log', 'jmp', 'test', 'je', 'jne', 'sub'
+	'mov', 'add', 'log', 'jmp', 'test', 'je', 'jne', 'sub', 'import'
 ];
 const COMMANDS = {};
 
