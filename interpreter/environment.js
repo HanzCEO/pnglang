@@ -6,7 +6,8 @@ module.exports = class Environment {
 			rax: 0,
 			rbx: 0,
 			rcx: 0,
-			rdx: 0
+			rdx: 0,
+			zf: 0
 		};
 	}
 
