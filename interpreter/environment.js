@@ -125,6 +125,11 @@ module.exports = class Environment {
 						this.register.zf = 0;
 					}
 					break;
+				case COMMANDS.JNE:
+					if (this.register.zf == 0) {
+						i = Number(detail.argsValue[0]);
+					}
+					break;
 				}
 			}
 		}
