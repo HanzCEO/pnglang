@@ -119,6 +119,12 @@ module.exports = class Environment {
 					let v2 = detail.argsValue[1].value ?? detail.argsValue[1];
 					this.register.zf = Number(v1 === v2);
 					break;
+				case COMMANDS.JE:
+					if (this.register.zf == 1) {
+						i = Number(detail.argsValue[0]);
+						this.register.zf = 0;
+					}
+					break;
 				}
 			}
 		}
