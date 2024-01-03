@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/HanzCEO/pnglang/issues"
   },
-  "homepage": "https://github.com/HanzCEO/pnglang#readme"
+  "homepage": "https://github.com/HanzCEO/pnglang#readme",
+  "dependencies": {
+    "jimp": "^0.22.10"
+  }
 }
