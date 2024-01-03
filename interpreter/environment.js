@@ -147,6 +147,11 @@ module.exports = class Environment {
 					let modName = detail.argsValue[1];
 					this.importedResources[modName] = mod;
 					break;
+				case COMMANDS.SYSCALL:
+					// TODO: Write function for every 'commands' instead of doing cases like this
+					let [modName2, func] = detail.argsValue[0].split('.');
+					this.importedResources[modName2][func](this);
+					break;
 				}
 			}
 		}
