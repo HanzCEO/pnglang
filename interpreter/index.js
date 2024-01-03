@@ -95,7 +95,7 @@ function parseArguments(_args) {
 	let args = _args.split(' ');
 
 	// Search for end of strings
-	if (args.length > 2) {
+	if (args.length >= 2) {
 		if (args[0].startsWith('"')) {
 			// It's a string!
 			// Now search for end of '"'
